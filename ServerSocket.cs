@@ -192,7 +192,7 @@ public class UdpHandler : UdpClient
         if (_remoteEndPoint == null)
             throw new InvalidOperationException("No client connected");
 
-        var packet = new byte[data.Length + (packetId > 4 ? 5 : 1)]; // if packetID > 4 then pad enough space to do jack shit with it
+        var packet = new byte[data.Length + (packetId > 4 ? 5 : 1)];
         packet[0] = packetId;
         unsafe
         {
@@ -209,7 +209,7 @@ public class UdpHandler : UdpClient
     {
 
     }
-    // Static method to handle incoming connections and create new listeners
+    
     public static async Task HandleIncomingConnections(
         int port,
         Dictionary<byte, PacketHandler> packetHandlers,
@@ -429,7 +429,6 @@ class Program
         // Set up packet handlers
         var packetHandlers = new List<UdpHandler.PacketHandler>(50);
         var i = 0;
-        packetHandlers.Map(
 
         packetHandlers[0x00] = (handler, packet) => handler.SendPacketAsync(0x00, System.Text.Encoding.ASCII.GetBytes("24\x00"));
         packetHandlers[0x01] = (handler, packet) => handler.SendPacketAsync(0x01, []);
@@ -437,6 +436,7 @@ class Program
         packetHandlers[0x03] = (handler, packet) => handler.SendPacketAsync(0x04, []);
         packetHandlers[0x04] = (handler, packet) => Task.Run(() => { });
         packetHandlers[9] = (handler, packet) => handler.SendPacketAsync(0x01, []);
+
         // Start listeners for each port
         var listenerTasks = new List<Task>();
         foreach (var port in ports)
@@ -478,31 +478,14 @@ class Program
         }
     }
 
-    // Example packet handlers - each handler knows its client from the UdpHandler context
-    static async Task HandleLoginPacket(Packet packet)
-    {
-        // In a real handler, you'd have access to the specific UdpHandler instance
-        // and could use handler.SendPacketAsync() to respond to the specific client
-        Console.WriteLine($"Login packet received: {packet.Data.Length} bytes");
-
-        // Example response
-        // await handler.SendPacketAsync(1, Encoding.UTF8.GetBytes("Login successful"));
-    }
-
     static async Task HandleMessagePacket(Packet packet)
     {
         var message = System.Text.Encoding.UTF8.GetString(packet.Data);
         Console.WriteLine($"Message packet received: {message}");
-
-        // Example echo response
-        // await handler.SendPacketAsync(2, Encoding.UTF8.GetBytes($"Echo: {message}"));
     }
 
     static async Task HandlePingPacket(Packet packet)
     {
         Console.WriteLine($"Ping packet received");
-
-        // Example pong response
-        // await handler.SendPacketAsync(3, []);
     }
 }
